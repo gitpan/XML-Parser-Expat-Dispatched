@@ -1,0 +1,17 @@
+---
+abstract: 'Automagically dispatches subs to XML::Parser::Expat handlers'
+author:
+  - 'Patrick Seebauer <patpatpat@cpan.org>'
+build_requires: {}
+configure_requires:
+  ExtUtils::MakeMaker: 6.30
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 5.005, CPAN::Meta::Converter version 2.131560'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: XML-Parser-Expat-Dispatched
+requires:
+  XML::Parser::Expat: 0
+version: 0.9
