@@ -11,7 +11,7 @@ sub init{
 	push @{$s->{__testparser_handlers_visited}{$name}},[@_];
       }
     } else{
-      *t::testparser::transform_gi=$name;
+      *t::testparser::config_dispatched= sub{{transform => $name}};
     }
   }
 }
