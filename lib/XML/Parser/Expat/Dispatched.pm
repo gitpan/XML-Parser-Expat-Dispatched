@@ -1,12 +1,51 @@
 package XML::Parser::Expat::Dispatched;
+use strict;
 # ABSTRACT: Automagically dispatches subs to XML::Parser::Expat handlers
 use true;
-use parent XML::Parser::Expat;
+use parent 'XML::Parser::Expat';
 use Carp;
+our $VERSION = 0.901;
 
-our $VERSION = 0.9;
+=head1 SYNOPSIS
+
+    package MyParser;
+    use parent XML::Parser::Expat::Dispatched;
+    
+    sub Start_tagname{
+      my $self = shift;
+      say $_[0], $self->original_tagname;
+    }
+    
+    sub End_tagname{
+      my $self=shift;
+      say "$_[0] ended";
+    }
+    
+    sub Char_handler{
+      my ($self, $string) = @_;
+      say $string;
+    }
+     
+     sub transform_gi{
+      lc $_[1];
+     }
+
+
+     package main;
+     my $p = MyParser->new;
+     $p->parse('<Tagname>tag</Tagname>');
+     # prints
+     # Tagname<Tagname>
+     # tag
+     # Tagname ended
+
+=cut
+
+
 
 sub new {
+  no strict 'refs';
+  # perlcritic doesn't like this, but who likes living by the book
   my($package) = shift;
   my %dispatch;
   while (my ($symbol_table_key, $val) = each %{ *{ "$package\::" } }) {
@@ -66,119 +105,98 @@ sub __gen_dispatch{
 
 __END__
 
-=pod
+=head1 DESCRIPTION
 
-=head1 Name
-
-XML::Parser::Expat::Dispatched
-
-=head1 Version
-
-Version 0.9
-
-=head1 Synopsis
-
-
-    package MyParser;
-    use parent XML::Parser::Expat::Dispatched;
-    
-    sub Start_tagname{
-      my $self = shift;
-      print $_[0], $self->original_tagname;
-    }
-    
-    sub End_tagname{
-      my $self=shift;
-      print "$_[0] ended";
-    }
-    
-    sub Char_handler{
-      my ($self, $string) = @_;
-      print $string;
-    }
-     
-     sub transform_gi{
-      lc $_[1];
-     }
-
-
-     package main;
-     my $p = MyParser->new;
-     $p->parse('<Tagname>tag</Tagname>');
-
-
-=head1 Description
-
-You simply write subroutines.
-Your parser will be a L<XML::Parser::Expat|XML::Parser::Expat> so consider
-checking the Methods of this class if you write other methods than handler methods.
-The underscore in the subroutine names is optional for all but the transform_gi method.
-The arguments your subroutine gets called with are the same as those for the handlers from
-L<XML::Parser::Expat|XML::Parser::Expat>.
-This package provides a C<new> method that produces some dispatch methods after reading the symbol table of your module, so be sure that your subroutines are actually in there when making the call to C<new>.
-These will then be installed into the handlers of an L<XML::Parser::Expat|XML::Parser::Expat>.
-If you want to write your own new method, make sure that this modules C<new> method get's called.
+This package provides a C<new> method that produces some dispatch methods for  L<XML::Parser::Expat/set_handlers> .
 
 Since your package will inherit L<XML::Parser::Expat|XML::Parser::Expat> be prepared to call it's C<release>-method if you write your own C<DESTROY>-method.
 
+I wrote this module because i needed a quite low-level XML-Parsing library that had an C<original_string> method. So if you need some higher level library, I'd really suggest to look at the L</SEE ALSO> section.
 
-=head3 Start_I<tagname>
+=head1 HANDLERS
+
+Available handlers:
+
+The underscore in the subroutine names is optional for all the handler methods.
+The arguments your subroutine gets called with, are the same as those for the handlers from L<XML::Parser::Expat|XML::Parser::Expat>.
+
+=head2 Start_I<tagname>
 
 Will be called when a start-tag is encountered that matches I<tagname>.
 If I<tagname> is not given (when your sub is called C<Start> or C<Start_>), it works like a default-handler for start tags.
 
-=head3 End_I<tagname>
+=head2 End_I<tagname>
 
 Will be called when a end-tag is encountered that matches I<tagname>.
 If I<tagname> is not given (when your sub is called C<End> or C<End_>), it works like a default-handler for end tags.
 
-=head3 I<Handler>_handler
+=head2 I<Handler>_handler
 
 Installs this subroutine as a handler for L<XML::Parser::Expat|XML::Parser::Expat>.
-You can see the Handler names on L<XML::Parser::Expat>. Notice that if you try to define a handler for Start or End,
-they will be interpreted as Start or End handlers for C<handler>-tags, use subs called C<Start> or C<End> instead.
+You can see the Handler names on L<XML::Parser::Expat/set_handlers>. Notice that if you try to define a handler for Start or End,
+they will be interpreted as C<Start> or C<End> handlers for C<handler>-tags, use subs called C<Start> or C<End> instead.
 
 
-=head3 transform_gi (Parser, Suffix/Tagname, isSuffix)
+=head2 transform_gi (Parser, Suffix/Tagname, isSuffix)
 
 This subroutine is special: you can use it to generalize the check
 between the subroutine suffix for the C<Start*> and C<End*> subroutine names
-and the tagnames.
+and the tagnames. The arguments are:
+
+=for :list
+* I<Parser>: the parser object
+* I<Suffix/Tagname>: the suffix of your subroutine-name or the tagname
+* I<isSuffix>: A C<1/0> value wether a subroutine name's suffix or an tagname was supplied (1 for suffix)
+
 
 Some Examples:
 
-    sub transform_gi{lc $_[1]}                            # case insensitive
-    sub transform_gi{return !$_[2] && $_[1]=~/:([^:]+)$/?$1: $_[1]} # try discarding the namespace
+    sub transform_gi{lc $_[1]}           # case insensitive
+    sub transform_gi{return !$_[2] && $_[1]=~/:([^:]+)$/ ?
+                            $1: $_[1]}   # try discarding the namespace
 
-Notice that the allowed characters for perl's subroutines
-and XML-Identifiers aren't the same so you might want to use the default handlers or transform_gi.
+Note that the allowed characters for perl's subroutine names
+and XML-Identifiers aren't the same, so you might want to use the default handlers or C<transform_gi> in some cases (namespaces, tagnames with an dash).
 
-=head1 Diagnostics
+=head1 DIAGNOSTICS
 
   the sub %s1 overrides the handler for %s2
 
 You most probably have two subroutines that
 have the same name exept one with an underscore and one without.
-The warning issued tells you wich subroutine will be used as a handler.
+The warning issued tells you wich of the subroutines will be used as a handler.
 Since the underlying mechanism is based on the C<each> iterator, this behavior
-can vary from time to time playing, so you might want to change your sub names.
+can vary from time to time running, so you might want to change your sub names.
 
   %s1 and %s2 translate to the same handler
 
 There is an sub called C<%s1> that translates to the same handler as a sub C<%s2> after applying C<transform_gi>. The sub C<%s1> will be used.
 
-If you overwrite __gen_dispatch this module doesn't work.
+=head2 INTERNALS
 
-=head1 Author
+The following things might break this module so be aware of them:
 
-Patrick Seebauer
+=for :list
 
-=head1 Licence
+* Your parser will be a L<XML::Parser::Expat|XML::Parser::Expat> so consider checking the methods of this class if you write methods other than handler methods
+.
+*Overwriting C<__gen_dispatch> without calling it in your C<__gen_dispatch> since this is the only method this module has.
 
-This software is Copyright (c) 2013 by Patrick Seebauer.
+*Useing C<AUTOLOAD> without updateing the symbol table before C<new> is called.
 
-This is free software, licensed under:
+*Calling C<set_handlers> on your parser. This module calls C<set_handlers> and if you do, you overwrite the handlers it has installed (why do you use this module anyway).
 
-  The Artistic License 2.0 (GPL Compatible)
+=head1 SEE ALSO
+
+Obviously L<XML::Parser::Expat|XML::Parser::Expat> as it is a simple extension of that class.
+
+
+You also should chekout these modules for parsing XML:
+
+=for :list
+* L<XML::Twig>
+* L<XML::LibXML>
+* L<XML::TokeParser>
+* Many other modules in the XML::Parser Namespace
 
 =cut

@@ -2,8 +2,6 @@
 
 use warnings;
 use strict;
-use 5.01;
-use open qw(:encoding(utf8) :std);
 use TAP::Harness;
 
 my $h=TAP::Harness

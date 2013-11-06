@@ -20,10 +20,19 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "XML::Parser::Expat::Dispatched",
   "PREREQ_PM" => {
-    "XML::Parser::Expat" => 0
+    "Carp" => 0,
+    "XML::Parser::Expat" => 0,
+    "parent" => 0,
+    "strict" => 0,
+    "true" => 0
   },
-  "TEST_REQUIRES" => {},
-  "VERSION" => "0.9",
+  "TEST_REQUIRES" => {
+    "Test::Fatal" => 0,
+    "Test::More" => 0,
+    "Test::Warnings" => 0,
+    "warnings" => 0
+  },
+  "VERSION" => "0.901",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -31,7 +40,15 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
-  "XML::Parser::Expat" => 0
+  "Carp" => 0,
+  "Test::Fatal" => 0,
+  "Test::More" => 0,
+  "Test::Warnings" => 0,
+  "XML::Parser::Expat" => 0,
+  "parent" => 0,
+  "strict" => 0,
+  "true" => 0,
+  "warnings" => 0
 );
 
 
