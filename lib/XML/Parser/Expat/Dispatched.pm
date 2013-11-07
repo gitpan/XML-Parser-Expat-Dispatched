@@ -5,7 +5,7 @@ use true;
 use parent 'XML::Parser::Expat';
 use Carp;
 
-our $VERSION = 0.951;
+our $VERSION = 0.952;
 
 
 sub new {
@@ -105,7 +105,7 @@ XML::Parser::Expat::Dispatched - Automagically dispatches subs to XML::Parser::E
 
 =head1 VERSION
 
-version 0.951
+version 0.952
 
 =head1 SYNOPSIS
 
@@ -273,7 +273,7 @@ Some Examples:
 
    sub config_dispatched{{
      transform_suffix => sub{my $_ =  $_[1]; s/__/:/g; s/_/-/g; $_},
-     # try to work around the fact that `–' and `:' aren't allowed characters for perl subroutine names
+     # try to work around the fact that `-' and `:' aren't allowed characters for perl subroutine names
    }}
 
 Note that the allowed characters for perl's subroutine names
@@ -305,9 +305,9 @@ The following things might break this module so be aware of them:
 
 * Your parser will be a L<XML::Parser::Expat|XML::Parser::Expat> so consider checking the methods of this class if you write methods other than handler methods
 .
-*Using C<AUTOLOAD> without updating the symbol table before C<new> is called.
+* Using C<AUTOLOAD> without updating the symbol table before C<new> is called.
 
-*Calling C<set_handlers> on your parser. This module calls C<set_handlers> and if you do, you overwrite the handlers it had installed (why do you use this module anyway?).
+* Calling C<set_handlers> on your parser. This module calls C<set_handlers> and if you do, you overwrite the handlers it had installed (why do you use this module anyway?).
 
 =head1 SEE ALSO
 
